@@ -1,0 +1,59 @@
+## Ignore build output
+bin/
+obj/
+[Bb]uild/
+[Ll]og/
+[Ll]ogs/
+
+## Ignore user-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Ignore Visual Studio settings
+.vscode/
+.vs/
+*.code-workspace
+
+## Ignore NuGet packages
+packages/
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+
+## Ignore compiled files
+*.dll
+*.exe
+*.pdb
+*.cache
+*.zip
+*.tar.gz
+
+## Ignore configuration
+appsettings.Development.json
+secrets.json
+
+## Ignore environment files
+.env
+
+## Ignore publish output
+publish/
+wwwroot/dist/
+wwwroot/lib/
+
+## Ignore ReSharper/JetBrains files
+_ReSharper*/
+*.DotSettings.user
+
+## Ignore test results
+TestResults/
+*.coverage
+*.coveragexml
+
+## Ignore other common files
+*.log
+*.tmp
+*.bak
+*.swp
