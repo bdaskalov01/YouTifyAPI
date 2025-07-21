@@ -12,8 +12,8 @@ using WebAPIProgram;
 namespace WebAPIProgram.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250627120418_third")]
-    partial class third
+    [Migration("20250630140239_freshstart")]
+    partial class freshstart
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -252,15 +252,14 @@ namespace WebAPIProgram.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Artist_Id")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Artist_Id")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Likes")
                         .HasColumnType("integer");
 
-                    b.Property<DateOnly>("Release_Date")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("Release_Date")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Title")
                         .IsRequired()

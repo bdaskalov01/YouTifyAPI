@@ -249,15 +249,14 @@ namespace WebAPIProgram.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Artist_Id")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Artist_Id")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Likes")
                         .HasColumnType("integer");
 
-                    b.Property<DateOnly>("Release_Date")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("Release_Date")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Title")
                         .IsRequired()

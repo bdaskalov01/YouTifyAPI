@@ -2,7 +2,9 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebAPIProgram.Models.Database.Tables;
+using WebAPIProgram.Models.DTO;
 using WebAPIProgram.Repositories;
+using WebAPIProgram.Services;
 
 namespace WebAPIProgram.Controllers;
 
@@ -11,17 +13,18 @@ namespace WebAPIProgram.Controllers;
 public class SongsController : ControllerBase
 {
     
-    private readonly ISongsRepository _songsRepository;
+    private readonly ISongsService _songsService;
+    
 
-    public SongsController(ISongsRepository songsRepository)
+    public SongsController(ISongsService songsService)
     {
-        _songsRepository = songsRepository;
+        _songsService = songsService;
     }
     
     [HttpGet("Get by id")]
     public async Task<IActionResult> Get(string id)
     {
-        var title = await _songsRepository.GetByIdAsync(int.Parse(id));
+        var title = await _songsService.GetSongByIdAsync(int.Parse(id));
         if (title == null)
         {
             return BadRequest();
@@ -32,7 +35,7 @@ public class SongsController : ControllerBase
     [HttpGet("Get all")]
     public async Task<IActionResult> Get()
     {
-        var title = await _songsRepository.GetAllAsync();
+        var title = await _songsService.GetAllSongsAsync();
         if (title == null)
         {
             return BadRequest();
@@ -41,11 +44,11 @@ public class SongsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddAsync([FromBody] Songs songs)
+    public async Task<IActionResult> AddAsync([FromBody] SongsResponse song)
     {
         try
         {
-            _songsRepository.AddAsync(songs);
+            await _songsService.AddSongAsync(song);
         }
         catch (Exception ex)
         {

@@ -20,6 +20,20 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<ISongsRepository, SongsRepository>();
 builder.Services.AddScoped<ISongsService, SongsService>();
+builder.Services.AddScoped<IArtistsRepository, ArtistsRepository>();
+builder.Services.AddScoped<IArtistsService, ArtistService>();
+
+// Add CORS services
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
+
 
 var app = builder.Build();
 
@@ -30,6 +44,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
     app.MapOpenApi();
 }
+
+app.UseCors("AllowAll");
 
 app.MapIdentityApi<IdentityUser>();
 

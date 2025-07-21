@@ -50,12 +50,13 @@ public class SongsService: ISongsService
         {
             var song = new Songs
             {
-                Id = songDTO.id,
                 Title = songDTO.title,
                 Artist_Id = songDTO.artist_id,
-                Release_Date = DateOnly.FromDateTime(DateTime.Now)
+                Release_Date = DateTime.UtcNow.Date,
+                Likes = 0
             };
 
+            Console.WriteLine(DateTime.UtcNow.Date);
             await _songsRepository.AddAsync(song);
         }
 

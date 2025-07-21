@@ -18,6 +18,12 @@ public class SongsRepository : ISongsRepository
         return await _context.Songs.ToListAsync();
     }
 
+    public async Task<Songs> GetByNameAsync(string title)
+    {
+        return await _context.Songs.FirstOrDefaultAsync(song =>
+            song.Title == title);
+    }
+
     public async Task<Songs> GetByIdAsync(int id)
     {
         return await _context.Songs.FindAsync(id);
