@@ -33,6 +33,7 @@ public class SongsController : ControllerBase
     }
     
     [HttpGet("Get all")]
+    [Authorize(Policy = "Api")]
     public async Task<IActionResult> Get()
     {
         var title = await _songsService.GetAllSongsAsync();
