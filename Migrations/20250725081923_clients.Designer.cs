@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WebAPIProgram;
@@ -12,9 +13,11 @@ using WebAPIProgram;
 namespace WebAPIProgram.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250725081923_clients")]
+    partial class clients
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -242,6 +245,28 @@ namespace WebAPIProgram.Migrations
                     b.ToTable("Artists");
                 });
 
+            modelBuilder.Entity("WebAPIProgram.Models.Database.Tables.OAuthClients", b =>
+                {
+                    b.Property<string>("client_id")
+                        .HasColumnType("text");
+
+                    b.PrimitiveCollection<List<string>>("allowedScopes")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.Property<string>("client_secret")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.PrimitiveCollection<List<string>>("roles")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.HasKey("client_id");
+
+                    b.ToTable("OAuthClients");
+                });
+
             modelBuilder.Entity("WebAPIProgram.Models.Database.Tables.RefreshToken", b =>
                 {
                     b.Property<string>("UserId")
@@ -299,28 +324,6 @@ namespace WebAPIProgram.Migrations
                     b.HasKey("UserId", "SongId");
 
                     b.ToTable("UserLikedSongs");
-                });
-
-            modelBuilder.Entity("WebAPIProgram.Models.OAuthClient", b =>
-                {
-                    b.Property<string>("ClientId")
-                        .HasColumnType("text");
-
-                    b.PrimitiveCollection<List<string>>("AllowedScopes")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
-                    b.Property<string>("ClientSecret")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.PrimitiveCollection<List<string>>("Roles")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
-                    b.HasKey("ClientId");
-
-                    b.ToTable("OAuthClients");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

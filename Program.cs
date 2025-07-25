@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using WebAPIProgram;
 using WebAPIProgram.Models;
 using WebAPIProgram.Repositories;
 using WebAPIProgram.Services;
+using WebAPIProgram.Util;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -36,7 +38,11 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.Never;
+    });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddAuthorization(options =>
@@ -44,18 +50,16 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("Api", policy =>
     {
         policy.RequireAuthenticatedUser();
-        policy.RequireClaim("scope", "api");
+        policy.RequireClaim("scope", AuthConstants.apiScope);
     });
 });
 
-var clients = configuration.GetSection("OAuthClients").Get<List<OAuthClient>>();
-if (clients == null)
-    throw new InvalidOperationException("OAuthClients configuration section is missing or invalid.");
-builder.Services.AddSingleton(clients);
 builder.Services.AddScoped<ISongsRepository, SongsRepository>();
 builder.Services.AddScoped<ISongsService, SongsService>();
 builder.Services.AddScoped<IArtistsRepository, ArtistsRepository>();
 builder.Services.AddScoped<IArtistsService, ArtistService>();
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Add CORS services
 builder.Services.AddCors(options =>

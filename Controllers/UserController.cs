@@ -1,30 +1,20 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPIProgram.Controllers;
 
 [ApiController]
+[Route("api/[controller]")]
 public class UserController : ControllerBase
 {
-
-    [HttpGet("api/user")]
-    [Authorize]
-    public async Task<IActionResult> GetUserInfo()
+    
+    private readonly UserManager<IdentityUser> _userManager;
+    public UserController(UserManager<IdentityUser> userManager)
     {
-        var roles = User.Claims
-            .Where(c => c.Type == ClaimTypes.Role || c.Type == "role")
-            .Select(c => c.Value)
-            .ToList();
-        
-        var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-        var name = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
-
-        return Ok(new
-        {
-            Roles = roles,
-            Email = email,
-            Name = name
-        });
+        _userManager = userManager;
     }
+
+    
 }
