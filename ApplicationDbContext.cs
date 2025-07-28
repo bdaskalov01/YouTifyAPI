@@ -31,6 +31,6 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
         modelBuilder.Entity<RefreshToken>()
             .HasKey(key => new { key.UserId });
         modelBuilder.Entity<OAuthClient>()
-            .HasKey(key => new { key.ClientId });
+            .HasKey(key => new { key.Id });
      }
 }

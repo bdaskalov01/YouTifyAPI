@@ -31,10 +31,10 @@ builder.Services.AddAuthentication(options =>
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = configuration["Jwt:Issuer"],
-            ValidAudience = configuration["Jwt:Audience"],
+            ValidIssuer = configuration[AuthConstants.jwtIssuer],
+            ValidAudience = configuration[AuthConstants.jwtAudience],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+                Encoding.UTF8.GetBytes(configuration[AuthConstants.jwtKey]))
         };
     });
 
@@ -47,10 +47,10 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi();
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("Api", policy =>
+    options.AddPolicy(AuthConstants.apiPolicy, policy =>
     {
         policy.RequireAuthenticatedUser();
-        policy.RequireClaim("scope", AuthConstants.apiScope);
+        policy.RequireClaim(AuthConstants.scope, AuthConstants.apiScope);
     });
 });
 
@@ -72,6 +72,20 @@ builder.Services.AddCors(options =>
     });
 });
 
+async Task SeedRolesAsync(IServiceProvider serviceProvider)
+{
+    var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    
+    string[] roleNames = { AuthConstants.adminRole, AuthConstants.userRole, AuthConstants.artistRole };
+
+    foreach (var roleName in roleNames)
+    {
+        if (!await roleManager.RoleExistsAsync(roleName))
+        {
+            await roleManager.CreateAsync(new IdentityRole(roleName));
+        }
+    }
+}
 
 var app = builder.Build();
 
@@ -81,6 +95,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
     app.MapOpenApi();
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await SeedRolesAsync(services);
 }
 
 app.UseCors("AllowAll");

@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
@@ -38,7 +39,7 @@ public class AuthService: IAuthService
             };
         }
 
-        var token = GenerateAccessTokenDuringLogin((IdentityUser)response.Result);
+        var token = await GenerateAccessTokenDuringLogin((IdentityUser)response.Result);
 
         return new Response
         {
@@ -49,69 +50,30 @@ public class AuthService: IAuthService
 
     public async Task<Response> Register(Register register)
     {
-        return new Response
+        var result = await _repository.CreateUser(register);
+        if (result.Result != null)
         {
-            
-        };
+            var token = await GenerateAccessTokenDuringLogin((IdentityUser)result.Result);
+            return new Response
+            {
+                Error = null,
+                Result = token
+            };
+        }
+
+        return result;
     }
 
     public async Task<Response> FindUser(Login login)
     {
-        var user = _userManager.FindByNameAsync(login.username).Result;
-        if (user == null)
-        {
-            return new Response
-            {
-                Error = AuthConstants.invalidUser,
-                Result = null
-            };
-        }
-
-        if (!await _userManager.CheckPasswordAsync(user, login.password))
-        {
-            return new Response
-            {
-                Error = AuthConstants.invalidPassword,
-                Result = null
-            };
-        }
-
-        return new Response
-        {
-            Error = null,
-            Result = user
-        };
+        var result = await _repository.FindUser(login);
+        return result;
     }
 
-    public async Task<Response> FindResourceOwner(TokenRequest request)
+    public async Task<Response> CreateClient(ClientCreationRequest request)
     {
-        if (request.GrantType != AuthConstants.resourceOwnerGrant)
-            return new Response
-            {
-             Error = AuthConstants.invalidPassword,
-             Result = null
-            };
-
-        var user = await _userManager.FindByNameAsync(request.Username);
-        if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
-            return new Response
-            {
-                Error = AuthConstants.invalidGrantType,
-                Result = null };
-        
-        return new Response
-        {
-            Error = null,
-            Result = user
-        };
-    }
-
-    public OAuthClient? FindClient(TokenRequest request)
-    {
-        var client = _context.OAuthClients.SingleOrDefault(c =>
-            c.ClientId == request.ClientId && c.ClientSecret == request.ClientSecret);
-        
-        return client;
+        var result = await _repository.CreateClient(request);
+        return result;
     }
 
     public object GetClientInfo(IdentityUser client)
@@ -161,11 +123,7 @@ public class AuthService: IAuthService
 
         if (response.Result == null)
         {
-            return new Response
-            {
-                Error = response.Error,
-                Result = null
-            };
+            return response;
         }
 
         var token = await GenerateRoToken((IdentityUser)response.Result, request);
@@ -176,7 +134,7 @@ public class AuthService: IAuthService
             Result = token
         };
     }
-    public async Task<string> GenerateAccessTokenDuringLogin(IdentityUser user)
+    public async Task<TokenResponse> GenerateAccessTokenDuringLogin(IdentityUser user)
     {
         var userRoles = await _userManager.GetRolesAsync(user);
 
@@ -191,6 +149,8 @@ public class AuthService: IAuthService
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration[AuthConstants.jwtKey]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        
+        
 
         var token = new JwtSecurityToken(
             issuer: _configuration[AuthConstants.jwtIssuer],
@@ -201,11 +161,18 @@ public class AuthService: IAuthService
         );
 
         var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+        var refreshtoken = await GenerateRefreshToken(user.Id);
 
-        return jwt;
+        return new TokenResponse
+        {
+            TokenType = AuthConstants.bearerTokenType,
+            AccessToken = jwt,
+            ExpiresIn = AuthConstants.oneHourInSeconds,
+            RefreshToken = refreshtoken
+        };
     }
 
-    public object? GenerateCcToken(OAuthClient client, TokenRequest request)
+    public async Task<object?> GenerateCcToken(OAuthClient client, TokenRequest request)
     {
         var requestedScopes = request.Scope?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
 
@@ -228,13 +195,15 @@ public class AuthService: IAuthService
             signingCredentials: creds
         );
 
-        var tokenStr = new JwtSecurityTokenHandler().WriteToken(token);
-        return new
+        var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+        var refreshtoken = await GenerateRefreshToken(client.Id);
+
+        return new TokenResponse
         {
-            access_token = tokenStr,
-            token_type = AuthConstants.bearerToken,
-            expires_in = AuthConstants.oneHourInSeconds,
-            scope = string.Join(" ", grantedScopes)
+            TokenType = AuthConstants.bearerTokenType,
+            AccessToken = jwt,
+            ExpiresIn = AuthConstants.oneHourInSeconds,
+            RefreshToken = refreshtoken
         };
     }
 
@@ -266,12 +235,31 @@ public class AuthService: IAuthService
         );
 
         var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+        var refreshtoken = await GenerateRefreshToken(resourceowner.Id);
 
-        return new
+        return new TokenResponse
         {
-            access_token = jwt,
-            token_type = AuthConstants.bearerToken,
-            expires_in = AuthConstants.oneHourInSeconds
+            TokenType = AuthConstants.bearerTokenType,
+            AccessToken = jwt,
+            ExpiresIn = AuthConstants.oneHourInSeconds,
+            RefreshToken = refreshtoken
         };
+    }
+
+    public async Task<string?> GenerateRefreshToken(String id)
+    {
+        var randomNumber = new byte[64];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(randomNumber);
+        var token = Convert.ToBase64String(randomNumber);
+        try
+        {
+            await _repository.SaveRefreshToken(id, token);
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
+        return token;
     }
 }

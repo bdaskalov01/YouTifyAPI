@@ -43,7 +43,12 @@ public class AuthController: ControllerBase
     [HttpPost("Register")]
     public async Task<IActionResult> Register([FromForm] Register register)
     {
-        return Ok();
+        var response = await _authService.Register(register);
+        if (response.Result == null)
+        {
+            return BadRequest(response);
+        }
+        return Ok(response);
     }
 
 
@@ -110,21 +115,16 @@ public class AuthController: ControllerBase
         });
     }
 
-    // TODO: move in service
-    private string GenerateAccessToken(IEnumerable<Claim> claims)
+    [HttpPost("CreateClient")]
+    [Authorize]
+    public async Task<IActionResult> CreateClient([FromForm] ClientCreationRequest request)
     {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration[AuthConstants.jwtKey]!));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            issuer: _configuration[AuthConstants.jwtIssuer],
-            audience: _configuration[AuthConstants.jwtAudience],
-            claims: claims,
-            expires: DateTime.UtcNow.AddSeconds(AuthConstants.oneHourInSeconds),
-            signingCredentials: creds
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        var result = await _authService.CreateClient(request);
+        if (result.Error != null)
+        {
+            return BadRequest(result);
+        }
+        return Ok(result);
     }
     
 }

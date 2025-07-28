@@ -14,7 +14,7 @@ public class AuthConstants
     public const string resourceOwnerGrant = "password";
     
     // Token type
-    public const string bearerToken = "bearer";
+    public const string bearerTokenType = "bearer";
     
     // Token expiration
     public const int oneHour = 1;
@@ -32,6 +32,12 @@ public class AuthConstants
     public const string jwtIssuer = "Jwt:Issuer";
     public const string jwtAudience = "Jwt:Audience";
     
-    // Role
+    // Roles
     public const string role = "roke";
+    public const string userRole = "User";
+    public const string adminRole = "Admin";
+    public const string artistRole = "Artist";
+    
+    //Policies
+    public const string apiPolicy = "api_policy";
 }
