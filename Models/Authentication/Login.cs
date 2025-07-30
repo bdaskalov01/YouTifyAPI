@@ -11,4 +11,15 @@ public class Login
     [FromForm(Name = "password")]
     [Required(ErrorMessage = "Password is missing.")]
     public string password { get; set; }
+    [FromForm(Name = "client_id")]
+    [Required(ErrorMessage = "ClientID is missing.")]
+    public string? ClientId { get; set; }
+
+    [FromForm(Name = "client_secret")]
+    [Required(ErrorMessage = "ClientSecret is missing.")]
+    public string? ClientSecret { get; set; }
+
+    [FromForm(Name = "scope")]
+    [Required(ErrorMessage = "Scope is missing.")]
+    public string? Scope { get; set; }
 }

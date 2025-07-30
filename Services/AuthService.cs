@@ -26,48 +26,56 @@ public class AuthService: IAuthService
      _repository = repository;
     }
 
-    public async Task<Response> Login(Login login)
+    public async Task<Response> Login(Login login, Boolean checkPassword = true)
     {
-        var response = await FindUser(login);
+        var userResponse = await FindUser(login);
 
-        if (response.Result == null)
+        if (userResponse.Result == null)
         {
-            return new Response
-            {
-                Error = response.Error,
-                Result = null
-            };
+            return userResponse;
+        }
+        
+        var clientResponse = FindClient(login.ClientId, login.ClientSecret);
+        if (clientResponse.Result == null)
+        {
+            return clientResponse;
         }
 
-        var token = await GenerateAccessTokenDuringLogin((IdentityUser)response.Result);
+        var token = await GenerateRoToken((IdentityUser)userResponse.Result, (OAuthClient)clientResponse.Result, login.Scope);
 
         return new Response
         {
-            Error = null,
             Result = token
         };
     }
 
     public async Task<Response> Register(Register register)
     {
-        var result = await _repository.CreateUser(register);
-        if (result.Result != null)
-        {
-            var token = await GenerateAccessTokenDuringLogin((IdentityUser)result.Result);
-            return new Response
-            {
-                Error = null,
-                Result = token
-            };
-        }
-
+        var result = await _repository.CreateResourceOwner(register);
         return result;
     }
 
-    public async Task<Response> FindUser(Login login)
+    public async Task<Response> FindUser(Login login, Boolean checkPassword = true)
     {
-        var result = await _repository.FindUser(login);
+        var result = await _repository.FindResourceOwner(login.username, login.password, checkPassword);
         return result;
+    }
+
+    public Response FindClient(String clientId, String clientSecret)
+    {
+        var client = _repository.FindClient(clientId, clientSecret);
+        if (client == null)
+        {
+            return new Response
+            {
+                Error = AuthConstants.invalidClient
+            };
+        }
+
+        return new Response
+        {
+            Result = client
+        };
     }
 
     public async Task<Response> CreateClient(ClientCreationRequest request)
@@ -86,10 +94,44 @@ public class AuthService: IAuthService
         throw new NotImplementedException();
     }
 
-    public Response HandleCcFlow(TokenRequest request)
+    public Response HandleCcFlow(AccessTokenRequest request)
     {
-        var client = _repository.FindClient(request);
+        var client = _repository.FindClient(request.ClientId, request.ClientSecret);
 
+        if (client == null)
+        {
+            return new Response
+            {
+                Error = AuthConstants.invalidClient
+            };
+        }
+
+        var token = GenerateCcToken(client, request.Scope);
+
+        if (token == null)
+        {
+            return new Response
+            {
+                Error = AuthConstants.invalidScope
+            };
+        }
+
+        return new Response
+        {
+            Result = token
+        };
+    }
+
+    public async Task<Response> HandleRoFlow(AccessTokenRequest request)
+    {
+        var user = await _repository.FindResourceOwner(request.Username, request.Password);
+
+        if (user.Result == null)
+        {
+            return user;
+        }
+        
+        var client = _repository.FindClient(request.ClientId, request.ClientSecret);
         if (client == null)
         {
             return new Response
@@ -99,90 +141,27 @@ public class AuthService: IAuthService
             };
         }
 
-        var token = GenerateCcToken(client, request);
-
-        if (token == null)
-        {
-            return new Response
-            {
-                Error = AuthConstants.invalidScope,
-                Result = null
-            };
-        }
+        var token = await GenerateRoToken((IdentityUser)user.Result, client, request.Scope);
 
         return new Response
         {
-            Error = null,
             Result = token
         };
     }
-    
-    public async Task<Response> HandleRoFlow(TokenRequest request)
+
+    public async Task<object?> GenerateCcToken(OAuthClient client, String scopes)
     {
-        var response = await _repository.FindResourceOwner(request);
-
-        if (response.Result == null)
-        {
-            return response;
-        }
-
-        var token = await GenerateRoToken((IdentityUser)response.Result, request);
-
-        return new Response
-        {
-            Error = null,
-            Result = token
-        };
-    }
-    public async Task<TokenResponse> GenerateAccessTokenDuringLogin(IdentityUser user)
-    {
-        var userRoles = await _userManager.GetRolesAsync(user);
-
-        var claims = new List<Claim>
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
-            new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName ?? "")
-        };
-
-        claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration[AuthConstants.jwtKey]!));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        
-        
-
-        var token = new JwtSecurityToken(
-            issuer: _configuration[AuthConstants.jwtIssuer],
-            audience: _configuration[AuthConstants.jwtAudience],
-            claims: claims,
-            expires: DateTime.UtcNow.AddSeconds(AuthConstants.oneHourInSeconds),
-            signingCredentials: creds
-        );
-
-        var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-        var refreshtoken = await GenerateRefreshToken(user.Id);
-
-        return new TokenResponse
-        {
-            TokenType = AuthConstants.bearerTokenType,
-            AccessToken = jwt,
-            ExpiresIn = AuthConstants.oneHourInSeconds,
-            RefreshToken = refreshtoken
-        };
-    }
-
-    public async Task<object?> GenerateCcToken(OAuthClient client, TokenRequest request)
-    {
-        var requestedScopes = request.Scope?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+        var requestedScopes = scopes.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
         var grantedScopes = requestedScopes.Intersect(client.AllowedScopes).ToList();
         if (!grantedScopes.Any())
             return null;
 
         var claims = new List<Claim>();
-        claims.AddRange(client.Roles.Select(role => new Claim(ClaimTypes.Role, role)));
+        claims.AddRange(client.Roles.Select(role => new Claim(AuthConstants.role, role)));
         claims.AddRange(grantedScopes.Select(s => new Claim(AuthConstants.scope, s)));
+        claims.Add(new Claim(AuthConstants.idClaim, client.Id));
+        claims.Add(new Claim(AuthConstants.grantType, AuthConstants.clientCredentialsGrant));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration[AuthConstants.jwtKey]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -196,32 +175,30 @@ public class AuthService: IAuthService
         );
 
         var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-        var refreshtoken = await GenerateRefreshToken(client.Id);
 
         return new TokenResponse
         {
             TokenType = AuthConstants.bearerTokenType,
             AccessToken = jwt,
             ExpiresIn = AuthConstants.oneHourInSeconds,
-            RefreshToken = refreshtoken
         };
     }
 
-    public async Task<object?> GenerateRoToken(IdentityUser resourceowner, TokenRequest request)
+    public async Task<object?> GenerateRoToken(IdentityUser resourceowner, OAuthClient client, String scopes)
     {
         var userRoles = await _userManager.GetRolesAsync(resourceowner);
 
         var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, resourceowner.Id),
-            new Claim(JwtRegisteredClaimNames.Email, resourceowner.Email ?? ""),
-            new Claim(JwtRegisteredClaimNames.UniqueName, resourceowner.UserName ?? "")
+            new Claim(AuthConstants.idClaim, resourceowner.Id),
+            new Claim(AuthConstants.emailClaim, resourceowner.Email ?? ""),
+            new Claim(AuthConstants.usernameClaim, resourceowner.UserName ?? "")
         };
 
-        claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
-
-        if (!string.IsNullOrEmpty(request.Scope))
-            claims.Add(new Claim(AuthConstants.scope, request.Scope));
+        claims.AddRange(userRoles.Select(role => new Claim(AuthConstants.role, role)));
+        claims.Add(new Claim(AuthConstants.grantType, AuthConstants.resourceOwnerGrant));
+        claims.Add(new Claim(AuthConstants.scope, scopes));
+        claims.Add(new Claim(AuthConstants.clientIDClaim, client.ClientId));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration[AuthConstants.jwtKey]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -235,8 +212,7 @@ public class AuthService: IAuthService
         );
 
         var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-        var refreshtoken = await GenerateRefreshToken(resourceowner.Id);
-
+        var refreshtoken = await GenerateRefreshToken(resourceowner.Id, AuthConstants.resourceOwnerGrant, scopes, client.ClientId);
         return new TokenResponse
         {
             TokenType = AuthConstants.bearerTokenType,
@@ -246,7 +222,7 @@ public class AuthService: IAuthService
         };
     }
 
-    public async Task<string?> GenerateRefreshToken(String id)
+    public async Task<string?> GenerateRefreshToken(String id, String grantType, String scopes, String clientId)
     {
         var randomNumber = new byte[64];
         using var rng = RandomNumberGenerator.Create();
@@ -254,12 +230,86 @@ public class AuthService: IAuthService
         var token = Convert.ToBase64String(randomNumber);
         try
         {
-            await _repository.SaveRefreshToken(id, token);
+            await _repository.SaveRefreshToken(id, token, grantType, scopes);
         }
         catch (Exception e)
         {
             return null;
         }
         return token;
+    }
+
+    public async Task<Response> RefreshToken(RefreshTokenRequest request)
+    {
+        ParsedRefreshToken parsedToken;
+        if (!await _repository.doesRefreshTokenExist(request.RefreshToken))
+        {
+            return new Response
+            {
+                Error = AuthConstants.invalidRefreshToken
+            };
+        }
+
+        try
+        {
+            parsedToken = ValidateToken(request.AccessToken);
+        }
+        catch (Exception e)
+        {
+            return new Response
+            {
+                Error = e.Message
+            };
+        }
+
+        var user = _repository.FindResourceOwnerById(parsedToken.userId);
+        var client = _repository.FindClientById(parsedToken.clientId);
+
+
+        if (parsedToken.tokenType == AuthConstants.resourceOwnerGrant && user != null)
+        {
+            var token = GenerateRoToken(user, client, parsedToken.scopes);
+            return new Response
+            {
+                Result = token
+            };
+        }
+        
+
+        throw new NotImplementedException();
+    }
+
+    private ParsedRefreshToken ValidateToken(string token)
+    {
+        var validationParams = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = _configuration[AuthConstants.jwtIssuer],
+            ValidAudience = _configuration[AuthConstants.jwtAudience],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration[AuthConstants.jwtKey]!))
+        };
+        try
+        {
+            var result = new JwtSecurityTokenHandler().ValidateToken(token, validationParams, out _);
+            var tokenType = result.Claims.FirstOrDefault(s => s.Type == AuthConstants.grantType)!.Value;
+            var clientid = result.Claims.FirstOrDefault(s => s.Type == AuthConstants.clientIDClaim)!.Value;
+            var id = result.Claims.FirstOrDefault(s => s.Type == AuthConstants.idClaim)!.Value;
+            var scopes = result.Claims.FirstOrDefault(s => s.Type == AuthConstants.scope)!.Value;
+
+            return new ParsedRefreshToken
+            {
+                clientId = clientid,
+                tokenType = tokenType,
+                userId = id,
+                scopes = scopes
+            };
+        }
+        catch (Exception e)
+        {
+            throw new Exception("Invalid token");
+        }
     }
 }

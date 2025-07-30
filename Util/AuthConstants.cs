@@ -2,24 +2,27 @@ namespace WebAPIProgram.Util;
 
 public class AuthConstants
 {
+    // Responses
+    public const string successfullRegistration = "User has been registered successfully";
     // Invalid responses
     public const string invalidUser = "User not found";
     public const string invalidClient = "Invalid client credentials";
     public const string invalidPassword = "Invalid password";
     public const string invalidGrantType = "Invalid grant type";
     public const string invalidScope = "Invalid scope";
+    public const string invalidRefreshToken = "Invalid refresh token";
     
     // Grant types
+    public const string grantType = "grant_type";
     public const string clientCredentialsGrant = "client_credentials";
     public const string resourceOwnerGrant = "password";
     
-    // Token type
+    // Token
     public const string bearerTokenType = "bearer";
-    
-    // Token expiration
     public const int oneHour = 1;
     public const int oneHourInMinutes = 60;
     public const int oneHourInSeconds = 3600;
+    public const int sevenDays = 7;
     
     // Scopes
     public const string scope = "scope";
@@ -33,11 +36,20 @@ public class AuthConstants
     public const string jwtAudience = "Jwt:Audience";
     
     // Roles
-    public const string role = "roke";
+    public const string role = "role";
     public const string userRole = "User";
     public const string adminRole = "Admin";
     public const string artistRole = "Artist";
     
     //Policies
     public const string apiPolicy = "api_policy";
+    
+    // Claims
+    public const string idClaim = "id";
+    public const string emailClaim = "email";
+    public const string usernameClaim = "username";
+    public const string nameClaim = "name";
+    public const string emailVerifiedClaim = "email_verified";
+    public const string clientIDClaim = "client_id";
+
 }

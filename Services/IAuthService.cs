@@ -7,18 +7,10 @@ namespace WebAPIProgram.Services;
 public interface IAuthService
 {
     
-    public Task<Response> Login(Login login);
+    public Task<Response> Login(Login login, Boolean checkPassword = true);
     public Task<Response> Register(Register register);
-    public Response HandleCcFlow(TokenRequest request);
-    public Task<Response> HandleRoFlow(TokenRequest request);
+    public Response HandleCcFlow(AccessTokenRequest request);
+    public Task<Response> HandleRoFlow(AccessTokenRequest request);
     public Task<Response> CreateClient(ClientCreationRequest request);
-    public object GetClientInfo(IdentityUser client);
-    public object GetUserInfo(IdentityUser user);
-    public Task<TokenResponse> GenerateAccessTokenDuringLogin(IdentityUser user);
-    public Task<object?>GenerateCcToken(OAuthClient client, TokenRequest request);
-    public Task<object?> GenerateRoToken(IdentityUser owner, TokenRequest request);
-
-    public Task<string?> GenerateRefreshToken(String id);
-
-
+    
 }

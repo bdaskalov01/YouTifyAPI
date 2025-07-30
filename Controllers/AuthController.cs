@@ -53,7 +53,8 @@ public class AuthController: ControllerBase
 
 
     [HttpPost("Token")]
-    public async Task<IActionResult> Token([FromBody] TokenRequest request)
+    [Consumes("application/x-www-form-urlencoded")]
+    public async Task<IActionResult> Token([FromForm] AccessTokenRequest request)
     {
         
         if (request.GrantType == AuthConstants.clientCredentialsGrant)

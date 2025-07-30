@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPIProgram.Models;
 
-public class TokenRequest
+public class AccessTokenRequest
 {
     [FromForm(Name = "grant_type")]
     [Required(ErrorMessage = "Grant type is missing.")]
