@@ -4,6 +4,7 @@ public class AuthConstants
 {
     // Responses
     public const string successfullRegistration = "User has been registered successfully";
+    
     // Invalid responses
     public const string invalidUser = "User not found";
     public const string invalidClient = "Invalid client credentials";
@@ -23,6 +24,7 @@ public class AuthConstants
     public const int oneHourInMinutes = 60;
     public const int oneHourInSeconds = 3600;
     public const int sevenDays = 7;
+    public const int thirtyMinutes = 30;
     
     // Scopes
     public const string scope = "scope";
@@ -43,6 +45,9 @@ public class AuthConstants
     
     //Policies
     public const string apiPolicy = "api_policy";
+    public const string artistPolicy = "artist_policy";
+    public const string adminPolicy = "admin_policy";
+    public const string confirmedEmailPolicy = "confirmed_email_policy";
     
     // Claims
     public const string idClaim = "id";

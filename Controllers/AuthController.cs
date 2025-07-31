@@ -30,9 +30,9 @@ public class AuthController: ControllerBase
 
     [HttpPost("Login")]
     [Consumes("application/x-www-form-urlencoded")]
-    public async Task<IActionResult> Login([FromForm] Login login)
+    public async Task<IActionResult> Login([FromForm] AccessTokenRequest login)
     {
-        var response = await _authService.Login(login);
+        var response = await _authService.HandleRoFlow(login);
         if (response.Result == null)
         {
             return NotFound(response);
@@ -57,6 +57,7 @@ public class AuthController: ControllerBase
     public async Task<IActionResult> Token([FromForm] AccessTokenRequest request)
     {
         
+        Console.WriteLine(request.GrantType);
         if (request.GrantType == AuthConstants.clientCredentialsGrant)
         {
             var response = _authService.HandleCcFlow(request);
@@ -77,7 +78,19 @@ public class AuthController: ControllerBase
         }
 
         return BadRequest(AuthConstants.invalidGrantType);
-    } 
+    }
+
+    [HttpPost("Refresh")]
+    [Consumes("application/x-www-form-urlencoded")]
+    public async Task<IActionResult> Refresh([FromForm] RefreshTokenRequest request)
+    {
+        var response = await _authService.RefreshToken(request);
+        if (response.Error != null)
+        {
+            return BadRequest(response);
+        }
+        return Ok(response);
+    }
     
 
     [HttpGet("UserInfo")]

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WebAPIProgram;
@@ -12,9 +13,11 @@ using WebAPIProgram;
 namespace WebAPIProgram.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250731075923_refreshtokenprimarykeychange")]
+    partial class refreshtokenprimarykeychange
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -244,11 +247,7 @@ namespace WebAPIProgram.Migrations
 
             modelBuilder.Entity("WebAPIProgram.Models.Database.Tables.RefreshToken", b =>
                 {
-                    b.Property<string>("Token")
-                        .HasColumnType("text");
-
                     b.Property<string>("ClientId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("ExpiryTime")
@@ -262,10 +261,14 @@ namespace WebAPIProgram.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("UserId")
                         .HasColumnType("text");
 
-                    b.HasKey("Token");
+                    b.HasKey("ClientId");
 
                     b.ToTable("RefreshTokens");
                 });

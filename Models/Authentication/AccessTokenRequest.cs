@@ -5,9 +5,6 @@ namespace WebAPIProgram.Models;
 
 public class AccessTokenRequest
 {
-    [FromForm(Name = "grant_type")]
-    [Required(ErrorMessage = "Grant type is missing.")]
-    public string GrantType { get; set; }
 
     [FromForm(Name = "username")]
     [Required(ErrorMessage = "Username is missing.")]
@@ -24,7 +21,9 @@ public class AccessTokenRequest
     [FromForm(Name = "client_secret")]
     [Required(ErrorMessage = "ClientSecret is missing.")]
     public string? ClientSecret { get; set; }
-
+    [FromForm(Name = "grant_type")]
+    [Required(ErrorMessage = "Grant type is missing.")]
+    public string GrantType { get; set; }
     [FromForm(Name = "scope")]
     [Required(ErrorMessage = "Scope is missing.")]
     public string? Scope { get; set; }

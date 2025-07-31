@@ -18,6 +18,40 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 builder.Services.AddSwaggerGen();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.Never;
+    });
+
+builder.Services.AddOpenApi();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(AuthConstants.apiPolicy, policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim(AuthConstants.scope, AuthConstants.apiScope);
+    });
+    options.AddPolicy(AuthConstants.artistPolicy, policy =>
+        {
+            policy.RequireAuthenticatedUser();
+            policy.RequireClaim(AuthConstants.role, AuthConstants.artistRole);
+            policy.RequireClaim(AuthConstants.role, AuthConstants.adminRole);
+
+        } 
+    );
+    options.AddPolicy(AuthConstants.adminPolicy, policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim(AuthConstants.role, AuthConstants.adminRole);
+    });
+    options.AddPolicy(AuthConstants.confirmedEmailPolicy, policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim(AuthConstants.emailClaim, AuthConstants.confirmedEmailPolicy);
+    });
+
+});
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -38,22 +72,7 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.Never;
-    });
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy(AuthConstants.apiPolicy, policy =>
-    {
-        policy.RequireAuthenticatedUser();
-        policy.RequireClaim(AuthConstants.scope, AuthConstants.apiScope);
-    });
-});
-
+// DI
 builder.Services.AddScoped<ISongsRepository, SongsRepository>();
 builder.Services.AddScoped<ISongsService, SongsService>();
 builder.Services.AddScoped<IArtistsRepository, ArtistsRepository>();
@@ -61,7 +80,10 @@ builder.Services.AddScoped<IArtistsService, ArtistService>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-// Add CORS services
+// Background services
+builder.Services.AddHostedService<ExpiredTokenCleanupService>();
+
+// CORS services
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>

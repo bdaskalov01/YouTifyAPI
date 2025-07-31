@@ -26,29 +26,6 @@ public class AuthService: IAuthService
      _repository = repository;
     }
 
-    public async Task<Response> Login(Login login, Boolean checkPassword = true)
-    {
-        var userResponse = await FindUser(login);
-
-        if (userResponse.Result == null)
-        {
-            return userResponse;
-        }
-        
-        var clientResponse = FindClient(login.ClientId, login.ClientSecret);
-        if (clientResponse.Result == null)
-        {
-            return clientResponse;
-        }
-
-        var token = await GenerateRoToken((IdentityUser)userResponse.Result, (OAuthClient)clientResponse.Result, login.Scope);
-
-        return new Response
-        {
-            Result = token
-        };
-    }
-
     public async Task<Response> Register(Register register)
     {
         var result = await _repository.CreateResourceOwner(register);
@@ -222,7 +199,7 @@ public class AuthService: IAuthService
         };
     }
 
-    public async Task<string?> GenerateRefreshToken(String id, String grantType, String scopes, String clientId)
+    public async Task<string?> GenerateRefreshToken(String user, String grantType, String scopes, String clientId)
     {
         var randomNumber = new byte[64];
         using var rng = RandomNumberGenerator.Create();
@@ -230,7 +207,7 @@ public class AuthService: IAuthService
         var token = Convert.ToBase64String(randomNumber);
         try
         {
-            await _repository.SaveRefreshToken(id, token, grantType, scopes);
+            await _repository.SaveRefreshToken(clientId, token, grantType, scopes, user);
         }
         catch (Exception e)
         {
@@ -263,12 +240,24 @@ public class AuthService: IAuthService
         }
 
         var user = _repository.FindResourceOwnerById(parsedToken.userId);
-        var client = _repository.FindClientById(parsedToken.clientId);
+        OAuthClient? client;
+        try
+        {
+            client = await _repository.FindClientById(parsedToken.clientId);
+        }
+        catch (Exception e)
+        {
+            return new Response
+            {
+                Error = AuthConstants.invalidClient
+            };
+        }
 
 
         if (parsedToken.tokenType == AuthConstants.resourceOwnerGrant && user != null)
         {
-            var token = GenerateRoToken(user, client, parsedToken.scopes);
+            var token = await GenerateRoToken(user, client, parsedToken.scopes);
+            await _repository.RemoveRefreshToken(request.RefreshToken);
             return new Response
             {
                 Result = token
@@ -276,7 +265,7 @@ public class AuthService: IAuthService
         }
         
 
-        throw new NotImplementedException();
+        throw new NullReferenceException();
     }
 
     private ParsedRefreshToken ValidateToken(string token)

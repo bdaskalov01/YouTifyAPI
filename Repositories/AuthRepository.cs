@@ -8,7 +8,7 @@ namespace WebAPIProgram.Repositories;
 
 public class AuthRepository : IAuthRepository
 {
-    
+
     private readonly UserManager<IdentityUser> _userManager;
     private readonly ApplicationDbContext _context;
 
@@ -17,7 +17,7 @@ public class AuthRepository : IAuthRepository
         _userManager = userManager;
         _context = context;
     }
-    
+
     public async Task<Response> FindResourceOwner(string username, string password, Boolean checkPassword = true)
     {
 
@@ -34,13 +34,13 @@ public class AuthRepository : IAuthRepository
                 Error = AuthConstants.invalidPassword
             };
         }
-        
+
         return new Response
         {
             Result = user
         };
     }
-    
+
     public OAuthClient? FindClient(string clientId, string clientSecret, Boolean checkPassword = true)
     {
 
@@ -51,22 +51,23 @@ public class AuthRepository : IAuthRepository
                 c.ClientId == clientId && c.ClientSecret == clientSecret);
             return client;
         }
-        
+
         client = _context.OAuthClients.SingleOrDefault(c =>
             c.ClientId == clientId);
-        
+
         return client;
     }
 
     public IdentityUser? FindResourceOwnerById(string id)
     {
         var user = _userManager.FindByIdAsync(id).Result;
-        throw new NotImplementedException();
+        return user;
     }
 
-    public OAuthClient? FindClientById(string id)
+    public async Task<OAuthClient?> FindClientById(string id)
     {
-        throw new NotImplementedException();
+        var client = await _context.OAuthClients.SingleOrDefaultAsync(client => client.ClientId == id);
+        return client;
     }
 
     public async Task<Response> CreateResourceOwner(Register register)
@@ -83,15 +84,16 @@ public class AuthRepository : IAuthRepository
             if (!roleResult.Succeeded)
             {
                 await _userManager.DeleteAsync(user);
-                
+
                 return new Response
                 {
                     Error = string.Join(", ", roleResult.Errors.Select(e => e.Description))
                 };
             }
+
             return new Response
             {
-                Result = AuthConstants.successfullRegistration 
+                Result = AuthConstants.successfullRegistration
             };
         }
 
@@ -130,31 +132,27 @@ public class AuthRepository : IAuthRepository
 
     public async Task SaveRefreshToken(String id, String token, String grantType, String scopes, String? user = null)
     {
-        var selectedUser = await _context.RefreshTokens.FirstOrDefaultAsync(u => u.ClientId == id);
-        if (selectedUser == null)
-        {
             await _context.RefreshTokens.AddAsync(new RefreshToken
             {
                 Token = token,
                 ClientId = id,
+                GrantType = grantType,
+                UserId = user,
+                Scope = scopes,
                 ExpiryTime = DateTime.UtcNow.AddDays(AuthConstants.sevenDays)
             });
             await _context.SaveChangesAsync();
-            return;
-        }
-        selectedUser.Token = token;
-        selectedUser.ClientId = id;
-        selectedUser.GrantType = grantType;
-        if (user != null)
-            selectedUser.UserId = user;
-        selectedUser.Scope = scopes;
-        selectedUser.ExpiryTime = DateTime.UtcNow.AddDays(AuthConstants.sevenDays);
-        await _context.SaveChangesAsync();
+    }
 
+    public async Task RemoveRefreshToken(string token)
+    {
+        await _context.RefreshTokens
+            .Where(t => t.Token == token)
+            .ExecuteDeleteAsync();
     }
 
     public async Task<Boolean> doesRefreshTokenExist(String token)
     {
-        return await _context.RefreshTokens.AnyAsync(u => u.Token == token);
+        return await _context.RefreshTokens.AnyAsync(t => t.Token == token);
     }
 }

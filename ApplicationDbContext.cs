@@ -29,7 +29,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
         modelBuilder.Entity<Songs>()
             .HasKey(key => new { key.Id });
         modelBuilder.Entity<RefreshToken>()
-            .HasKey(key => new { key.UserId });
+            .HasKey(key => new { key.Token });
         modelBuilder.Entity<OAuthClient>()
             .HasKey(key => new { key.Id });
      }
