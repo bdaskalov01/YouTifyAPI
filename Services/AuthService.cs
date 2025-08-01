@@ -34,7 +34,7 @@ public class AuthService: IAuthService
 
     public async Task<Response> FindUser(Login login, Boolean checkPassword = true)
     {
-        var result = await _repository.FindResourceOwner(login.username, login.password, checkPassword);
+        var result = await _repository.FindResourceOwner(login.Username, login.Password, checkPassword);
         return result;
     }
 
@@ -239,11 +239,11 @@ public class AuthService: IAuthService
             };
         }
 
-        var user = _repository.FindResourceOwnerById(parsedToken.userId);
+        var user = _repository.FindResourceOwnerById(parsedToken.UserId);
         OAuthClient? client;
         try
         {
-            client = await _repository.FindClientById(parsedToken.clientId);
+            client = await _repository.FindClientById(parsedToken.ClientId);
         }
         catch (Exception e)
         {
@@ -254,9 +254,9 @@ public class AuthService: IAuthService
         }
 
 
-        if (parsedToken.tokenType == AuthConstants.resourceOwnerGrant && user != null)
+        if (parsedToken.TokenType == AuthConstants.resourceOwnerGrant && user != null)
         {
-            var token = await GenerateRoToken(user, client, parsedToken.scopes);
+            var token = await GenerateRoToken(user, client, parsedToken.Scopes);
             await _repository.RemoveRefreshToken(request.RefreshToken);
             return new Response
             {
@@ -290,15 +290,25 @@ public class AuthService: IAuthService
 
             return new ParsedRefreshToken
             {
-                clientId = clientid,
-                tokenType = tokenType,
-                userId = id,
-                scopes = scopes
+                ClientId = clientid,
+                TokenType = tokenType,
+                UserId = id,
+                Scopes = scopes
             };
         }
         catch (Exception e)
         {
             throw new Exception("Invalid token");
         }
+    }
+
+    public Task<Response> UpdateUserRoles(UpdateUserRolesRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Response> UpdateUserInfo()
+    {
+        throw new NotImplementedException();
     }
 }

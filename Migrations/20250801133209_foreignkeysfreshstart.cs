@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -7,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace WebAPIProgram.Migrations
 {
     /// <inheritdoc />
-    public partial class freshstart : Migration
+    public partial class foreignkeysfreshstart : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,8 +17,7 @@ namespace WebAPIProgram.Migrations
                 name: "Artists",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Subscribers = table.Column<int>(type: "integer", nullable: false),
                     Monthly_listeners = table.Column<int>(type: "integer", nullable: false)
@@ -67,32 +67,62 @@ namespace WebAPIProgram.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Followers",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    ArtistId = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Followers", x => new { x.UserId, x.ArtistId });
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OAuthClients",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    ClientId = table.Column<string>(type: "text", nullable: false),
+                    ClientSecret = table.Column<string>(type: "text", nullable: false),
+                    Roles = table.Column<List<string>>(type: "text[]", nullable: false),
+                    AllowedScopes = table.Column<List<string>>(type: "text[]", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OAuthClients", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RefreshTokens",
+                columns: table => new
+                {
+                    Token = table.Column<string>(type: "text", nullable: false),
+                    ClientId = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<string>(type: "text", nullable: true),
+                    Scope = table.Column<string>(type: "text", nullable: false),
+                    GrantType = table.Column<string>(type: "text", nullable: false),
+                    ExpiryTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RefreshTokens", x => x.Token);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Songs",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<string>(type: "text", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: false),
-                    Artist_Id = table.Column<int>(type: "integer", nullable: false),
+                    Thumbnail = table.Column<string>(type: "text", nullable: false),
+                    Artist_Id = table.Column<string>(type: "text", nullable: false),
                     Release_Date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Likes = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Songs", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "UserLikedSongs",
-                columns: table => new
-                {
-                    UserId = table.Column<int>(type: "integer", nullable: false),
-                    SongId = table.Column<int>(type: "integer", nullable: false),
-                    AddedAt = table.Column<DateOnly>(type: "date", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserLikedSongs", x => new { x.UserId, x.SongId });
                 });
 
             migrationBuilder.CreateTable(
@@ -201,6 +231,31 @@ namespace WebAPIProgram.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "UserLikedSongs",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    SongId = table.Column<string>(type: "text", nullable: false),
+                    AddedAt = table.Column<DateOnly>(type: "date", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserLikedSongs", x => new { x.UserId, x.SongId });
+                    table.ForeignKey(
+                        name: "FK_UserLikedSongs_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserLikedSongs_Songs_SongId",
+                        column: x => x.SongId,
+                        principalTable: "Songs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -237,6 +292,11 @@ namespace WebAPIProgram.Migrations
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserLikedSongs_SongId",
+                table: "UserLikedSongs",
+                column: "SongId");
         }
 
         /// <inheritdoc />
@@ -261,7 +321,13 @@ namespace WebAPIProgram.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Songs");
+                name: "Followers");
+
+            migrationBuilder.DropTable(
+                name: "OAuthClients");
+
+            migrationBuilder.DropTable(
+                name: "RefreshTokens");
 
             migrationBuilder.DropTable(
                 name: "UserLikedSongs");
@@ -271,6 +337,9 @@ namespace WebAPIProgram.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Songs");
         }
     }
 }

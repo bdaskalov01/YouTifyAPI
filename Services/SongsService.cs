@@ -19,11 +19,11 @@ public class SongsService: ISongsService
             
             return products.Select(song => new SongsResponse 
             { 
-                id = song.Id, 
-                title = song.Title, 
-                artist_id = song.Artist_Id,
-                release_date = song.Release_Date,
-                likes = song.Likes,
+                Id = song.Id, 
+                Title = song.Title, 
+                ArtistId = song.Artist_Id,
+                ReleaseDate = song.Release_Date,
+                Likes = song.Likes,
             });
         }
 
@@ -36,11 +36,11 @@ public class SongsService: ISongsService
 
             return new SongsResponse 
             { 
-                id = song.Id, 
-                title = song.Title, 
-                artist_id = song.Artist_Id,
-                release_date = song.Release_Date,
-                likes = song.Likes,
+                Id = song.Id, 
+                Title = song.Title, 
+                ArtistId = song.Artist_Id,
+                ReleaseDate = song.Release_Date,
+                Likes = song.Likes,
             };
         }
         
@@ -50,8 +50,8 @@ public class SongsService: ISongsService
         {
             var song = new Songs
             {
-                Title = songDTO.title,
-                Artist_Id = songDTO.artist_id,
+                Title = songDTO.Title,
+                Artist_Id = songDTO.ArtistId,
                 Release_Date = DateTime.UtcNow.Date,
                 Likes = 0
             };
@@ -67,7 +67,7 @@ public class SongsService: ISongsService
             if (song == null)
                 throw new KeyNotFoundException("Song not found");
 
-            song.Likes = songDTO.likes;
+            song.Likes = songDTO.Likes;
 
             await _songsRepository.UpdateAsync(song);
         }

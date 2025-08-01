@@ -74,10 +74,10 @@ public class AuthRepository : IAuthRepository
     {
         var user = new IdentityUser
         {
-            UserName = register.username,
-            Email = register.email,
+            UserName = register.Username,
+            Email = register.Email,
         };
-        var result = await _userManager.CreateAsync(user, register.password);
+        var result = await _userManager.CreateAsync(user, register.Password);
         if (result.Succeeded)
         {
             var roleResult = await _userManager.AddToRoleAsync(user, "User");

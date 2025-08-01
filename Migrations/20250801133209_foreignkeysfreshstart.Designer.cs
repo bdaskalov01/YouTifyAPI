@@ -13,8 +13,8 @@ using WebAPIProgram;
 namespace WebAPIProgram.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250731075923_refreshtokenprimarykeychange")]
-    partial class refreshtokenprimarykeychange
+    [Migration("20250801133209_foreignkeysfreshstart")]
+    partial class foreignkeysfreshstart
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -224,11 +224,8 @@ namespace WebAPIProgram.Migrations
 
             modelBuilder.Entity("WebAPIProgram.Models.Database.Tables.Artists", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
 
                     b.Property<int>("Monthly_listeners")
                         .HasColumnType("integer");
@@ -245,9 +242,26 @@ namespace WebAPIProgram.Migrations
                     b.ToTable("Artists");
                 });
 
+            modelBuilder.Entity("WebAPIProgram.Models.Database.Tables.Followers", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ArtistId")
+                        .HasColumnType("text");
+
+                    b.HasKey("UserId", "ArtistId");
+
+                    b.ToTable("Followers");
+                });
+
             modelBuilder.Entity("WebAPIProgram.Models.Database.Tables.RefreshToken", b =>
                 {
+                    b.Property<string>("Token")
+                        .HasColumnType("text");
+
                     b.Property<string>("ClientId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("ExpiryTime")
@@ -261,34 +275,32 @@ namespace WebAPIProgram.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("UserId")
                         .HasColumnType("text");
 
-                    b.HasKey("ClientId");
+                    b.HasKey("Token");
 
                     b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("WebAPIProgram.Models.Database.Tables.Songs", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Artist_Id")
-                        .HasColumnType("integer");
+                    b.Property<string>("Artist_Id")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("Likes")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("Release_Date")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Thumbnail")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -301,16 +313,18 @@ namespace WebAPIProgram.Migrations
 
             modelBuilder.Entity("WebAPIProgram.Models.Database.Tables.UserLikedSongs", b =>
                 {
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
 
-                    b.Property<int>("SongId")
-                        .HasColumnType("integer");
+                    b.Property<string>("SongId")
+                        .HasColumnType("text");
 
                     b.Property<DateOnly>("AddedAt")
                         .HasColumnType("date");
 
                     b.HasKey("UserId", "SongId");
+
+                    b.HasIndex("SongId");
 
                     b.ToTable("UserLikedSongs");
                 });
@@ -390,6 +404,25 @@ namespace WebAPIProgram.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("WebAPIProgram.Models.Database.Tables.UserLikedSongs", b =>
+                {
+                    b.HasOne("WebAPIProgram.Models.Database.Tables.Songs", "Song")
+                        .WithMany()
+                        .HasForeignKey("SongId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "IdentityUser")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("IdentityUser");
+
+                    b.Navigation("Song");
                 });
 #pragma warning restore 612, 618
         }

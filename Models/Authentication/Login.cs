@@ -7,10 +7,10 @@ public class Login
 {
     [FromForm(Name = "username")]
     [Required(ErrorMessage = "Username is missing.")]
-    public string username { get; set; }
+    public string Username { get; set; }
     [FromForm(Name = "password")]
     [Required(ErrorMessage = "Password is missing.")]
-    public string password { get; set; }
+    public string Password { get; set; }
     [FromForm(Name = "client_id")]
     [Required(ErrorMessage = "ClientID is missing.")]
     public string? ClientId { get; set; }

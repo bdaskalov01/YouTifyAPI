@@ -2,9 +2,9 @@ namespace WebAPIProgram.Models.DTO;
 
 public class SongsResponse
 {
-    public int id { get; set; }
-    public string title { get; set; }
-    public int artist_id { get; set; }
-    public DateTime release_date { get; set; }
-    public int likes { get; set; }
+    public string Id { get; set; }
+    public string Title { get; set; }
+    public string ArtistId { get; set; }
+    public DateTime ReleaseDate { get; set; }
+    public int Likes { get; set; }
 }
