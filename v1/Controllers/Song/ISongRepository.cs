@@ -2,7 +2,7 @@ using WebAPIProgram.Models.Database.Tables;
 
 namespace WebAPIProgram.Repositories;
 
-public interface ISongsRepository
+public interface ISongRepository
 {
     Task<IEnumerable<Songs>> GetAllAsync();
     Task<Songs> GetByNameAsync(string title);

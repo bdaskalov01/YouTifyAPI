@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.IdentityModel.Tokens;
 using WebAPIProgram.Models;
+using WebAPIProgram.Models.Database.Tables;
 using WebAPIProgram.Repositories;
 using WebAPIProgram.Util;
 
@@ -13,12 +14,12 @@ namespace WebAPIProgram.Services;
 
 public class AuthService: IAuthService
 {
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<IdentityUserExtended> _userManager;
     private readonly IConfiguration _configuration;
     private readonly ApplicationDbContext _context;
     private readonly IAuthRepository _repository;
     
-    public AuthService(UserManager<IdentityUser> userManager, IConfiguration configuration, ApplicationDbContext context, IAuthRepository repository)
+    public AuthService(UserManager<IdentityUserExtended> userManager, IConfiguration configuration, ApplicationDbContext context, IAuthRepository repository)
     {
      _userManager = userManager;   
      _configuration = configuration;
@@ -61,12 +62,12 @@ public class AuthService: IAuthService
         return result;
     }
 
-    public object GetClientInfo(IdentityUser client)
+    public object GetClientInfo(IdentityUserExtended client)
     {
         throw new NotImplementedException();
     }
 
-    public object GetUserInfo(IdentityUser user)
+    public object GetUserInfo(IdentityUserExtended user)
     {
         throw new NotImplementedException();
     }
@@ -118,7 +119,7 @@ public class AuthService: IAuthService
             };
         }
 
-        var token = await GenerateRoToken((IdentityUser)user.Result, client, request.Scope);
+        var token = await GenerateRoToken((IdentityUserExtended)user.Result, client, request.Scope);
 
         return new Response
         {
@@ -161,7 +162,7 @@ public class AuthService: IAuthService
         };
     }
 
-    public async Task<object?> GenerateRoToken(IdentityUser resourceowner, OAuthClient client, String scopes)
+    public async Task<object?> GenerateRoToken(IdentityUserExtended resourceowner, OAuthClient client, String scopes)
     {
         var userRoles = await _userManager.GetRolesAsync(resourceowner);
 

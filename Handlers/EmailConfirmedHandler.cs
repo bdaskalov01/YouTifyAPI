@@ -1,3 +1,4 @@
+using WebAPIProgram.Models.Database.Tables;
 using WebAPIProgram.Requirements;
 
 namespace WebAPIProgram.Handlers;
@@ -8,9 +9,9 @@ using System.Security.Claims;
 
 public class EmailConfirmedHandler : AuthorizationHandler<EmailConfirmedRequirement>
 {
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<IdentityUserExtended> _userManager;
 
-    public EmailConfirmedHandler(UserManager<IdentityUser> userManager)
+    public EmailConfirmedHandler(UserManager<IdentityUserExtended> userManager)
     {
         _userManager = userManager;
     }
@@ -26,5 +27,8 @@ public class EmailConfirmedHandler : AuthorizationHandler<EmailConfirmedRequirem
         {
             context.Succeed(requirement);
         }
+        
+        else
+            context.Fail();
     }
 }

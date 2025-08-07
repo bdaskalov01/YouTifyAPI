@@ -5,33 +5,26 @@ using WebAPIProgram.Services;
 
 namespace WebAPIProgram.Controllers;
 
-[Route("api/[controller]")]
+[Route("v1/api/[controller]")]
 [ApiController]
 public class ArtistController : ControllerBase
 {
-    private readonly IArtistsService artistsService;
+    private readonly IArtistService _artistService;
 
-    public ArtistController(IArtistsService service)
+    public ArtistController(IArtistService service)
     {
-        artistsService = service;
+        _artistService = service;
     }
     
     [HttpGet("Get artist by name")]
     public async Task<IActionResult> GetByArtistId(string name)
     {
-        var list = await artistsService.GetByName(name);
+        var list = await _artistService.GetByName(name);
         if (list == null)
         {
             return NotFound();
         }
         Console.WriteLine(string.Join(",", list));
         return Ok(list);
-    }
-
-    [HttpPost("Add artist")]
-    public async Task<IActionResult> AddAsync([FromBody] Artists artist)
-    {
-        await artistsService.AddAsync(artist);
-        return Ok();
     }
 }

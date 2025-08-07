@@ -5,22 +5,24 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using WebAPIProgram.Filters.Action;
 using WebAPIProgram.Models;
+using WebAPIProgram.Models.Database.Tables;
 using WebAPIProgram.Services;
 using WebAPIProgram.Util;
 
 namespace WebAPIProgram.Controllers;
 
 [ApiController]
-[Route("[Controller]")]
+[Route("v1/[Controller]")]
 public class AuthController: ControllerBase
 {
 
     private readonly IConfiguration _configuration;
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<IdentityUserExtended> _userManager;
     private readonly IAuthService _authService;
     
-    public AuthController(IConfiguration configuration, UserManager<IdentityUser> userManager, IAuthService iAAService)
+    public AuthController(IConfiguration configuration, UserManager<IdentityUserExtended> userManager, IAuthService iAAService)
     {
         _configuration = configuration;
         _userManager = userManager;
@@ -53,6 +55,7 @@ public class AuthController: ControllerBase
 
 
     [HttpPost("Token")]
+    [ServiceFilter(typeof(ArtistClickedFilter))]
     [Consumes("application/x-www-form-urlencoded")]
     public async Task<IActionResult> Token([FromForm] AccessTokenRequest request)
     {
@@ -130,7 +133,6 @@ public class AuthController: ControllerBase
     }
 
     [HttpPost("CreateClient")]
-    [Authorize]
     public async Task<IActionResult> CreateClient([FromForm] ClientCreationRequest request)
     {
         var result = await _authService.CreateClient(request);

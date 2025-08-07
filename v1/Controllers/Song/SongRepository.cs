@@ -4,11 +4,11 @@ using WebAPIProgram.Models.Database.Tables;
 
 namespace WebAPIProgram.Repositories;
 
-public class SongsRepository : ISongsRepository
+public class SongRepository : ISongRepository
 {
     private readonly ApplicationDbContext _context;
     
-    public SongsRepository(ApplicationDbContext context)
+    public SongRepository(ApplicationDbContext context)
     {
         _context = context;
     }

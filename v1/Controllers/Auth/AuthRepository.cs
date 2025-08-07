@@ -9,10 +9,10 @@ namespace WebAPIProgram.Repositories;
 public class AuthRepository : IAuthRepository
 {
 
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<IdentityUserExtended> _userManager;
     private readonly ApplicationDbContext _context;
 
-    public AuthRepository(UserManager<IdentityUser> userManager, ApplicationDbContext context)
+    public AuthRepository(UserManager<IdentityUserExtended> userManager, ApplicationDbContext context)
     {
         _userManager = userManager;
         _context = context;
@@ -58,7 +58,7 @@ public class AuthRepository : IAuthRepository
         return client;
     }
 
-    public IdentityUser? FindResourceOwnerById(string id)
+    public IdentityUserExtended? FindResourceOwnerById(string id)
     {
         var user = _userManager.FindByIdAsync(id).Result;
         return user;
@@ -72,7 +72,7 @@ public class AuthRepository : IAuthRepository
 
     public async Task<Response> CreateResourceOwner(Register register)
     {
-        var user = new IdentityUser
+        var user = new IdentityUserExtended
         {
             UserName = register.Username,
             Email = register.Email,

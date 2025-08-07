@@ -1,12 +1,18 @@
 using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using WebAPIProgram;
-using WebAPIProgram.Models;
+using WebAPIProgram.Filters.Action;
+using WebAPIProgram.Handlers;
+using StackExchange.Redis;
+using WebAPIProgram.Controllers;
+using WebAPIProgram.Models.Database.Tables;
 using WebAPIProgram.Repositories;
+using WebAPIProgram.Requirements;
 using WebAPIProgram.Services;
 using WebAPIProgram.Util;
 
@@ -14,7 +20,7 @@ var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+builder.Services.AddIdentity<IdentityUserExtended, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 builder.Services.AddSwaggerGen();
@@ -48,7 +54,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(AuthConstants.confirmedEmailPolicy, policy =>
     {
         policy.RequireAuthenticatedUser();
-        policy.RequireClaim(AuthConstants.emailClaim, AuthConstants.confirmedEmailPolicy);
+        policy.Requirements.Add(new EmailConfirmedRequirement());
     });
 
 });
@@ -72,16 +78,33 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
-// DI
-builder.Services.AddScoped<ISongsRepository, SongsRepository>();
-builder.Services.AddScoped<ISongsService, SongsService>();
-builder.Services.AddScoped<IArtistsRepository, ArtistsRepository>();
-builder.Services.AddScoped<IArtistsService, ArtistService>();
+// DI Repositories
+builder.Services.AddScoped<ISongRepository, SongRepository>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+// DI Services
+builder.Services.AddScoped<ISongService, SongService>();
+builder.Services.AddScoped<IArtistService, ArtistService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+// DI Handlers
+builder.Services.AddScoped<IAuthorizationHandler, EmailConfirmedHandler>(); 
+
+// DI Filters
+builder.Services.AddScoped<ArtistClickedFilter>();
+
+// DI Reddis
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    var config = builder.Configuration.GetConnectionString("Redis") ?? builder.Configuration["Redis:ConnectionString"];
+    return ConnectionMultiplexer.Connect(config);
+});
 
 // Background services
 builder.Services.AddHostedService<ExpiredTokenCleanupService>();
+builder.Services.AddHostedService<UserClickCounterService>();
 
 // CORS services
 builder.Services.AddCors(options =>

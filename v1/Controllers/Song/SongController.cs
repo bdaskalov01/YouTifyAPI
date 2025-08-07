@@ -9,22 +9,22 @@ using WebAPIProgram.Services;
 namespace WebAPIProgram.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
-public class SongsController : ControllerBase
+[Route("v1/api/[controller]")]
+public class SongController : ControllerBase
 {
     
-    private readonly ISongsService _songsService;
+    private readonly ISongService _songService;
     
 
-    public SongsController(ISongsService songsService)
+    public SongController(ISongService songService)
     {
-        _songsService = songsService;
+        _songService = songService;
     }
     
     [HttpGet("Get by id")]
     public async Task<IActionResult> Get(string id)
     {
-        var title = await _songsService.GetSongByIdAsync(int.Parse(id));
+        var title = await _songService.GetSongByIdAsync(int.Parse(id));
         if (title == null)
         {
             return BadRequest();
@@ -36,7 +36,7 @@ public class SongsController : ControllerBase
     [Authorize(Policy = "Api")]
     public async Task<IActionResult> Get()
     {
-        var title = await _songsService.GetAllSongsAsync();
+        var title = await _songService.GetAllSongsAsync();
         if (title == null)
         {
             return BadRequest();
@@ -49,7 +49,7 @@ public class SongsController : ControllerBase
     {
         try
         {
-            await _songsService.AddSongAsync(song);
+            await _songService.AddSongAsync(song);
         }
         catch (Exception ex)
         {

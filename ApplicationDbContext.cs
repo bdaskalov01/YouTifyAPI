@@ -6,7 +6,7 @@ using WebAPIProgram.Models.Database.Tables;
 
 namespace WebAPIProgram;
 
-public class ApplicationDbContext : IdentityDbContext<IdentityUser>
+public class ApplicationDbContext : IdentityDbContext<IdentityUserExtended>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
@@ -18,6 +18,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<OAuthClient> OAuthClients { get; set; }
     public DbSet<Followers> Followers { get; set; }
+    public DbSet<Artists> Artists { get; set; }
     
      protected override void OnModelCreating(ModelBuilder modelBuilder)
      { 
@@ -51,13 +52,22 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
             .HasKey(key => new { key.UserId, key.SongId });
         //Foreign Keys
         modelBuilder.Entity<UserLikedSongs>()
-            .HasOne(ul => ul.IdentityUser)
+            .HasOne(ul => ul.IdentityUserExtended)
             .WithMany()
             .HasForeignKey(ul => ul.UserId);
-
         modelBuilder.Entity<UserLikedSongs>()
             .HasOne(ul => ul.Song)
             .WithMany()
             .HasForeignKey(ul => ul.SongId);
+        
+        // Artists Table
+        // Primary key
+        modelBuilder.Entity<Artists>()
+            .HasKey(key => new { key.Id });
+        // Foreign Key
+        modelBuilder.Entity<Artists>()
+            .HasOne(user => user.User)
+            .WithMany()
+            .HasForeignKey(user => user.Id);
      }
 }

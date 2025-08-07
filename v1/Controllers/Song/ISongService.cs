@@ -2,7 +2,7 @@ using WebAPIProgram.Models.DTO;
 
 namespace WebAPIProgram.Services;
 
-public interface ISongsService
+public interface ISongService
 {
     Task<IEnumerable<SongsResponse>> GetAllSongsAsync();
     Task<SongsResponse> GetSongByIdAsync(int id);

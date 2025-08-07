@@ -4,18 +4,18 @@ using WebAPIProgram.Repositories;
 
 namespace WebAPIProgram.Services;
 
-public class SongsService: ISongsService
+public class SongService: ISongService
 {
-    private readonly ISongsRepository _songsRepository;
+    private readonly ISongRepository _songRepository;
 
-        public SongsService(ISongsRepository songsRepository)
+        public SongService(ISongRepository songRepository)
         {
-            _songsRepository = songsRepository;
+            _songRepository = songRepository;
         }
 
         public async Task<IEnumerable<SongsResponse>> GetAllSongsAsync()
         {
-            var products = await _songsRepository.GetAllAsync();
+            var products = await _songRepository.GetAllAsync();
             
             return products.Select(song => new SongsResponse 
             { 
@@ -29,7 +29,7 @@ public class SongsService: ISongsService
 
         public async Task<SongsResponse> GetSongByIdAsync(int id)
         {
-            var song = await _songsRepository.GetByIdAsync(id);
+            var song = await _songRepository.GetByIdAsync(id);
 
             if (song == null)
                 throw new KeyNotFoundException("Product not found");
@@ -57,28 +57,28 @@ public class SongsService: ISongsService
             };
 
             Console.WriteLine(DateTime.UtcNow.Date);
-            await _songsRepository.AddAsync(song);
+            await _songRepository.AddAsync(song);
         }
 
         public async Task UpdateSongLikes(int id, SongsResponse songDTO)
         {
-            var song = await _songsRepository.GetByIdAsync(id);
+            var song = await _songRepository.GetByIdAsync(id);
 
             if (song == null)
                 throw new KeyNotFoundException("Song not found");
 
             song.Likes = songDTO.Likes;
 
-            await _songsRepository.UpdateAsync(song);
+            await _songRepository.UpdateAsync(song);
         }
 
         public async Task DeleteSongAsync(int id)
         {
-            var song = await _songsRepository.GetByIdAsync(id);
+            var song = await _songRepository.GetByIdAsync(id);
             
             if (song == null)
                 throw new KeyNotFoundException("Song not found");
 
-            await _songsRepository.DeleteAsync(id);
+            await _songRepository.DeleteAsync(id);
         }
     }
