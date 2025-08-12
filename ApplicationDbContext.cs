@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using PSQLModels.Tables;
 using WebAPIProgram.Models;
-using WebAPIProgram.Models.Database.Tables;
-
 namespace WebAPIProgram;
 
 public class ApplicationDbContext : IdentityDbContext<IdentityUserExtended>
@@ -19,6 +18,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUserExtended>
     public DbSet<OAuthClient> OAuthClients { get; set; }
     public DbSet<Followers> Followers { get; set; }
     public DbSet<Artists> Artists { get; set; }
+    public DbSet<PreviouslyUsedPasswords> PreviouslyUsedPasswords { get; set; }
     
      protected override void OnModelCreating(ModelBuilder modelBuilder)
      { 
@@ -69,5 +69,10 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUserExtended>
             .HasOne(user => user.User)
             .WithMany()
             .HasForeignKey(user => user.Id);
+        
+        // Previously Used Passwords Table
+        // Primary key
+        modelBuilder.Entity<PreviouslyUsedPasswords>()
+            .HasKey(key => new { key.UserId });
      }
 }

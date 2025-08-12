@@ -1,8 +1,7 @@
-using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
-using WebAPIProgram.Models.Database.Tables;
+using PSQLModels.Tables;
 
-namespace WebAPIProgram.Repositories;
+namespace WebAPIProgram.v1.Controllers.Song;
 
 public class SongRepository : ISongRepository
 {

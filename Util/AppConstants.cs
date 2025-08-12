@@ -1,9 +1,15 @@
 namespace WebAPIProgram.Util;
 
-public class AuthConstants
+public class AppConstants
 {
+    // URLS
+    public const string url = "http://localhost:5206";
+    
     // Responses
     public const string successfullRegistration = "User has been registered successfully";
+    public const string successfullyChangedPassword = "Password has been changed successfully";
+    public const string successfullyChangedEmail = "Email has been changed successfully";
+    public const string verificationTokenSuccess = "Successfully generated email verification token";
     
     // Invalid responses
     public const string invalidUser = "User not found";
@@ -12,6 +18,7 @@ public class AuthConstants
     public const string invalidGrantType = "Invalid grant type";
     public const string invalidScope = "Invalid scope";
     public const string invalidRefreshToken = "Invalid refresh token";
+    public const string internalError = "Internal server error";
     
     // Grant types
     public const string grantType = "grant_type";

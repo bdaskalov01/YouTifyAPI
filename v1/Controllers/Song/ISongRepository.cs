@@ -1,6 +1,7 @@
-using WebAPIProgram.Models.Database.Tables;
 
-namespace WebAPIProgram.Repositories;
+using PSQLModels.Tables;
+
+namespace WebAPIProgram.v1.Controllers.Song;
 
 public interface ISongRepository
 {

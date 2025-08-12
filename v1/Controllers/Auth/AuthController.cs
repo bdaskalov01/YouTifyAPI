@@ -1,18 +1,13 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
+using PSQLModels.Tables;
 using WebAPIProgram.Filters.Action;
 using WebAPIProgram.Models;
-using WebAPIProgram.Models.Database.Tables;
-using WebAPIProgram.Services;
 using WebAPIProgram.Util;
 
-namespace WebAPIProgram.Controllers;
-
+namespace WebAPIProgram.v1.Controllers.Auth;
 [ApiController]
 [Route("v1/[Controller]")]
 public class AuthController: ControllerBase
@@ -61,7 +56,7 @@ public class AuthController: ControllerBase
     {
         
         Console.WriteLine(request.GrantType);
-        if (request.GrantType == AuthConstants.clientCredentialsGrant)
+        if (request.GrantType == AppConstants.clientCredentialsGrant)
         {
             var response = _authService.HandleCcFlow(request);
             if (response.Result == null)
@@ -70,7 +65,7 @@ public class AuthController: ControllerBase
             }
             return Ok(response);
         }
-        if (request.GrantType == AuthConstants.resourceOwnerGrant)
+        if (request.GrantType == AppConstants.resourceOwnerGrant)
         {
             var result = await _authService.HandleRoFlow(request);
             if (result.Result == null)
@@ -80,7 +75,7 @@ public class AuthController: ControllerBase
             return Ok(result);
         }
 
-        return BadRequest(AuthConstants.invalidGrantType);
+        return BadRequest(AppConstants.invalidGrantType);
     }
 
     [HttpPost("Refresh")]
@@ -104,7 +99,7 @@ public class AuthController: ControllerBase
         var username = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
         var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
         var roles = User.Claims
-            .Where(c => c.Type == ClaimTypes.Role || c.Type == AuthConstants.role)
+            .Where(c => c.Type == ClaimTypes.Role || c.Type == AppConstants.role)
             .Select(c => c.Value)
             .ToList();
 
@@ -117,12 +112,14 @@ public class AuthController: ControllerBase
         });
     }
     
+    
+    // TODO: Migrate to User controller
     [HttpGet("ClientInfo")]
     [Authorize]
     public IActionResult GetClientInfo()
     {
         var roles = User.Claims
-            .Where(c => c.Type == ClaimTypes.Role || c.Type == AuthConstants.role)
+            .Where(c => c.Type == ClaimTypes.Role || c.Type == AppConstants.role)
             .Select(c => c.Value)
             .ToList();
 
@@ -132,6 +129,8 @@ public class AuthController: ControllerBase
         });
     }
 
+    
+    // TODO: Migrate to User controller
     [HttpPost("CreateClient")]
     public async Task<IActionResult> CreateClient([FromForm] ClientCreationRequest request)
     {

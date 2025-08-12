@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 public class ExpiredTokenCleanupService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly TimeSpan _interval = TimeSpan.FromMinutes(AuthConstants.thirtyMinutes);
+    private readonly TimeSpan _interval = TimeSpan.FromMinutes(AppConstants.thirtyMinutes);
 
     public ExpiredTokenCleanupService(IServiceProvider serviceProvider)
     {

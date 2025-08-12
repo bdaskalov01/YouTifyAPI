@@ -1,8 +1,7 @@
-using WebAPIProgram.Models.Database.Tables;
-using WebAPIProgram.Repositories;
+using PSQLModels.Tables;
+using WebAPIProgram.v1.Controllers.Auth;
 
-namespace WebAPIProgram.Services;
-
+namespace WebAPIProgram.v1.Controllers.Artist;
 public class ArtistService: IArtistService
 {
     private readonly IAuthRepository artistRepository;

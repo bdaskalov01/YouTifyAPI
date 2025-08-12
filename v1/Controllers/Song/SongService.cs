@@ -1,8 +1,7 @@
-using WebAPIProgram.Models.Database.Tables;
+using PSQLModels.Tables;
 using WebAPIProgram.Models.DTO;
-using WebAPIProgram.Repositories;
 
-namespace WebAPIProgram.Services;
+namespace WebAPIProgram.v1.Controllers.Song;
 
 public class SongService: ISongService
 {

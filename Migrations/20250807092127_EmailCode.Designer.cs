@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WebAPIProgram;
@@ -12,9 +13,11 @@ using WebAPIProgram;
 namespace WebAPIProgram.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250807092127_EmailCode")]
+    partial class EmailCode
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -155,7 +158,7 @@ namespace WebAPIProgram.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("PSQLModels.Tables.Artists", b =>
+            modelBuilder.Entity("ModelsAndContracts.Tables.Artists", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -168,7 +171,17 @@ namespace WebAPIProgram.Migrations
                     b.ToTable("Artists");
                 });
 
-            modelBuilder.Entity("PSQLModels.Tables.Followers", b =>
+            modelBuilder.Entity("ModelsAndContracts.Tables.EmailCode", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("EmailCodes");
+                });
+
+            modelBuilder.Entity("ModelsAndContracts.Tables.Followers", b =>
                 {
                     b.Property<string>("UserId")
                         .HasColumnType("text");
@@ -181,7 +194,7 @@ namespace WebAPIProgram.Migrations
                     b.ToTable("Followers");
                 });
 
-            modelBuilder.Entity("PSQLModels.Tables.IdentityUserExtended", b =>
+            modelBuilder.Entity("ModelsAndContracts.Tables.IdentityUserExtended", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -248,7 +261,7 @@ namespace WebAPIProgram.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("PSQLModels.Tables.OAuthClient", b =>
+            modelBuilder.Entity("ModelsAndContracts.Tables.OAuthClient", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -274,21 +287,7 @@ namespace WebAPIProgram.Migrations
                     b.ToTable("OAuthClients");
                 });
 
-            modelBuilder.Entity("PSQLModels.Tables.PreviouslyUsedPasswords", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
-
-                    b.PrimitiveCollection<string[]>("OldPasswords")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
-                    b.HasKey("UserId");
-
-                    b.ToTable("PreviouslyUsedPasswords");
-                });
-
-            modelBuilder.Entity("PSQLModels.Tables.RefreshToken", b =>
+            modelBuilder.Entity("ModelsAndContracts.Tables.RefreshToken", b =>
                 {
                     b.Property<string>("Token")
                         .HasColumnType("text");
@@ -316,7 +315,7 @@ namespace WebAPIProgram.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
-            modelBuilder.Entity("PSQLModels.Tables.Songs", b =>
+            modelBuilder.Entity("ModelsAndContracts.Tables.Songs", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -344,7 +343,7 @@ namespace WebAPIProgram.Migrations
                     b.ToTable("Songs");
                 });
 
-            modelBuilder.Entity("PSQLModels.Tables.UserLikedSongs", b =>
+            modelBuilder.Entity("ModelsAndContracts.Tables.UserLikedSongs", b =>
                 {
                     b.Property<string>("UserId")
                         .HasColumnType("text");
@@ -373,7 +372,7 @@ namespace WebAPIProgram.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("PSQLModels.Tables.IdentityUserExtended", null)
+                    b.HasOne("ModelsAndContracts.Tables.IdentityUserExtended", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -382,7 +381,7 @@ namespace WebAPIProgram.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("PSQLModels.Tables.IdentityUserExtended", null)
+                    b.HasOne("ModelsAndContracts.Tables.IdentityUserExtended", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -397,7 +396,7 @@ namespace WebAPIProgram.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PSQLModels.Tables.IdentityUserExtended", null)
+                    b.HasOne("ModelsAndContracts.Tables.IdentityUserExtended", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -406,16 +405,16 @@ namespace WebAPIProgram.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("PSQLModels.Tables.IdentityUserExtended", null)
+                    b.HasOne("ModelsAndContracts.Tables.IdentityUserExtended", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("PSQLModels.Tables.Artists", b =>
+            modelBuilder.Entity("ModelsAndContracts.Tables.Artists", b =>
                 {
-                    b.HasOne("PSQLModels.Tables.IdentityUserExtended", "User")
+                    b.HasOne("ModelsAndContracts.Tables.IdentityUserExtended", "User")
                         .WithMany()
                         .HasForeignKey("Id")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -424,15 +423,26 @@ namespace WebAPIProgram.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("PSQLModels.Tables.UserLikedSongs", b =>
+            modelBuilder.Entity("ModelsAndContracts.Tables.EmailCode", b =>
                 {
-                    b.HasOne("PSQLModels.Tables.Songs", "Song")
+                    b.HasOne("ModelsAndContracts.Tables.IdentityUserExtended", "IdentityUserExtended")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("IdentityUserExtended");
+                });
+
+            modelBuilder.Entity("ModelsAndContracts.Tables.UserLikedSongs", b =>
+                {
+                    b.HasOne("ModelsAndContracts.Tables.Songs", "Song")
                         .WithMany()
                         .HasForeignKey("SongId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PSQLModels.Tables.IdentityUserExtended", "IdentityUserExtended")
+                    b.HasOne("ModelsAndContracts.Tables.IdentityUserExtended", "IdentityUserExtended")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)

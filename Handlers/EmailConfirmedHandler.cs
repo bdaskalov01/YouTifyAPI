@@ -1,4 +1,4 @@
-using WebAPIProgram.Models.Database.Tables;
+using PSQLModels.Tables;
 using WebAPIProgram.Requirements;
 
 namespace WebAPIProgram.Handlers;

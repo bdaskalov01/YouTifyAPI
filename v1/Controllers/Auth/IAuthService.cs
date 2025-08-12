@@ -1,8 +1,6 @@
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.Data;
 using WebAPIProgram.Models;
 
-namespace WebAPIProgram.Services;
+namespace WebAPIProgram.v1.Controllers.Auth;
 
 public interface IAuthService
 {
@@ -11,8 +9,7 @@ public interface IAuthService
     public Task<Response> HandleRoFlow(AccessTokenRequest request);
     public Task<Response> CreateClient(ClientCreationRequest request);
     public Task<Response> RefreshToken(RefreshTokenRequest request);
-    public Task<Response> UpdateUserRoles(UpdateUserRolesRequest request);
-    public Task<Response> UpdateUserInfo();
+
 
     //TODO:
     //Update user roles = WIP

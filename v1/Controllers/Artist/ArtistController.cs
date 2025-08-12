@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using WebAPIProgram.Models.Database.Tables;
-using WebAPIProgram.Repositories;
 using WebAPIProgram.Services;
 
-namespace WebAPIProgram.Controllers;
+namespace WebAPIProgram.v1.Controllers.Artist;
 
 [Route("v1/api/[controller]")]
 [ApiController]

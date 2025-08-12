@@ -1,6 +1,6 @@
 using WebAPIProgram.Models.DTO;
 
-namespace WebAPIProgram.Services;
+namespace WebAPIProgram.v1.Controllers.Song;
 
 public interface ISongService
 {

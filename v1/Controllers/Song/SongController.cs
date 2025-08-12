@@ -1,12 +1,10 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebAPIProgram.Models.Database.Tables;
 using WebAPIProgram.Models.DTO;
-using WebAPIProgram.Repositories;
 using WebAPIProgram.Services;
 
-namespace WebAPIProgram.Controllers;
+namespace WebAPIProgram.v1.Controllers.Song;
 
 [ApiController]
 [Route("v1/api/[controller]")]
